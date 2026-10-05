@@ -1,0 +1,26 @@
+server {
+    listen 443 ssl;
+    server_name ${hostname};
+
+    # Self-signed origin certificate; Cloudflare terminates the public TLS.
+    ssl_certificate     /etc/kita/tls/origin.crt;
+    ssl_certificate_key /etc/kita/tls/origin.key;
+
+    root /opt/kita;
+    index index.html;
+
+    # Static files only; always revalidate. Locations below add no headers of
+    # their own, so they all inherit this one.
+    add_header Cache-Control "no-cache" always;
+
+    # Allow-list: /, /index.html, /styles.css and everything under /src/.
+    location = / { }
+    location = /index.html { }
+    location = /styles.css { }
+    location ^~ /src/ { }
+
+    # Everything else (.git, deploy/, tests, ...) is not served.
+    location / {
+        return 404;
+    }
+}

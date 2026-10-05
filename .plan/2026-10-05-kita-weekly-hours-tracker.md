@@ -43,10 +43,10 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 | id | title | type | deps | model | try | rp | status | note |
 |----|-------|------|------|-------|-----|----|--------|------|
 | N01 | preflight | check | - | -/- | 1 | 1 | DONE | |
-| N02 | time and week domain | exec | N01 | sonnet/sonnet | 0 | 0 | TODO | |
-| N03 | budget recalculation rule | exec | N01 | opus/sonnet | 0 | 0 | TODO | |
-| N04 | i18n and storage modules | exec | N01 | sonnet/sonnet | 0 | 0 | TODO | |
-| N05 | deploy to the Gateway VM | exec | N01 | sonnet/sonnet | 0 | 0 | TODO | |
+| N02 | time and week domain | exec | N01 | sonnet/sonnet | 1 | 0 | VERIFYING | |
+| N03 | budget recalculation rule | exec | N01 | opus/sonnet | 1 | 0 | DONE | |
+| N04 | i18n and storage modules | exec | N01 | sonnet/sonnet | 1 | 0 | RETRY | fail C3 |
+| N05 | deploy to the Gateway VM | exec | N01 | sonnet/sonnet | 1 | 0 | DONE | |
 | N06 | app shell and week view | exec | N02,N03,N04 | opus/sonnet | 0 | 0 | TODO | |
 | N07 | project docs | exec | N05,N06 | sonnet/sonnet | 0 | 0 | TODO | |
 | N08 | plan acceptance | check | N07 | -/sonnet | 0 | 0 | TODO | |
@@ -255,3 +255,34 @@ plan: REPLANNED
 
 ### N01 try 1 · 2026-10-05
 check: PASS 7/7
+
+### N04 try 1 · 2026-10-05
+exec: DONE · 20 passed
+- Added src/i18n.js (de/en tables, t with {name} interpolation, de fallback), src/storage.js (IndexedDB 'kita', six async fns), test/i18n.test.js
+- Missing-param placeholders stay literal; unknown key returns the key; load* return null when absent
+check: FAIL C3
+- C3 exit 1: # duration_ms 181.720481
+
+### N05 try 1 · 2026-10-05
+exec: DONE · 29 passed
+- Added deploy/terraform (versions, variables, main, outputs, tfvars example, kita.conf.tftpl, files/install.sh), deploy/README.md and .gitignore for tfvars/state
+- Terraform not installed: fmt and validate not run; README says so. Allow-list via exact/^~ locations plus 404 catch-all, no-cache at server level
+check: PASS 5/5
+
+### N03 try 1 · 2026-10-05
+exec: DONE · node --test test/budget.test.js: 9 passed; node --test: 29 passed
+- Added pure planWeek(week) in src/domain/budget.js (ESM) with 9 tests in test/budget.test.js covering worked example, 30h even split, leftover steps, noKita, cap at close, over-allowance, complete-after-close, no mutation
+- plannedMinutes sums shown (post-cap) durations; complete days are never capped but end>close sets overClosing; a started day past close ends at max(start, close)
+check: PASS 2/2
+
+### N02 try 1 · 2026-10-05
+exec: DONE · 29 passed (13 new in time/week)
+- Added src/domain/time.js and week.js with tests; pure, UTC date-string arithmetic, no mutation
+- stepTime(minutes, delta); setActualStart/End(week,date,minutes|null); D9 clamp uses actualStart ?? plannedStart
+check: PASS 3/3
+
+### N05 try 1 · 2026-10-05
+verify: PASS
+
+### N03 try 1 · 2026-10-05
+verify: PASS

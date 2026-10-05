@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars (gitignored) and fill in real values.
+hcloud_token         = "replace-with-hetzner-api-token"
+cloudflare_api_token = "replace-with-cloudflare-api-token"
+cloudflare_zone_id   = "replace-with-cloudflare-zone-id"
+kita_hostname        = "kita.example.com"
+kita_git_ref         = "0000000000000000000000000000000000000000"
+
+# Optional, shown with their defaults:
+# kita_repo_url         = "https://github.com/IVIR3zaM/Kita.git"
+# server_label_selector = "project=gateway"
+# ssh_private_key_path  = "~/.ssh/id_ed25519"
