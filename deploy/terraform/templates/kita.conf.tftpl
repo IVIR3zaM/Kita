@@ -11,15 +11,17 @@ server {
     root /opt/kita;
     index index.html;
 
-    # Static files only; always revalidate. Locations below add no headers of
-    # their own, so they all inherit this one.
-    add_header Cache-Control "no-cache" always;
+    # Static files only; browsers always revalidate and Cloudflare never caches
+    # (a 304 would keep its stale headers, e.g. an old Content-Type). Locations
+    # below add no headers of their own, so they all inherit this one.
+    add_header Cache-Control "private, no-cache" always;
 
-    # Allow-list: /, /index.html, /styles.css and everything under /src/.
+    # Allow-list: /, /index.html, /styles.css and everything under /src/ and /icons/.
     location = / { }
     location = /index.html { }
     location = /styles.css { }
     location ^~ /src/ { }
+    location ^~ /icons/ { }
 
     # Everything else (.git, deploy/, tests, ...) is not served.
     location / {
