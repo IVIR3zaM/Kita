@@ -1,7 +1,8 @@
 # Deploying Kita to the Gateway VM
 
 Kita is a static site. Terraform looks up the existing Gateway VM (it never creates, changes or destroys it),
-adds a proxied Cloudflare A record for `kita_hostname`, then logs in over SSH as root and runs
+adds a proxied Cloudflare A record for `kita_hostname`, applies its own Hetzner firewall `kita-ssh` to the VM
+(by label) that opens port 22 to the deploying machine, then logs in over SSH as root and runs
 `files/install.sh`. The script clones or fetches Kita into `/opt/kita`, checks out the full commit SHA
 detached, creates a self-signed origin certificate once in `/etc/kita/tls`, installs the nginx server block as
 `/etc/nginx/conf.d/kita.conf`, checks that nginx loads it, reloads nginx and requests the site locally.
@@ -10,15 +11,16 @@ There is no service user, no volume and no application process; nginx serves the
 nginx serves `/`, `/index.html`, `/styles.css` and everything under `/src/` from `/opt/kita`; every other path
 answers 404. Every response carries `Cache-Control: no-cache`.
 
-## Not validated yet
+## SSH access from a changing IP
 
-`terraform validate` was not run for these files (the provider registry was not reachable when they were
-written). Before the first apply, run it:
+Gateway's own firewall only opens port 22 to the IP Gateway was last applied from. Kita does not rely on it:
+every plan detects this machine's public IPv4 (`api.ipify.org`, falling back to `ipv4.icanhazip.com`) and
+`kita-ssh` allows port 22 from that `/32`. Hetzner combines the rules of all firewalls on a server, so this
+only adds access. A changed IP (for example on Starlink) is picked up by the next `terraform apply`. To pin
+fixed ranges instead, set `ssh_allow_cidrs`.
 
-```bash
-cd deploy/terraform
-terraform init && terraform validate
-```
+Gateway's `hcloud_server` must set `ignore_remote_firewall_ids = true`; otherwise every Gateway apply tries to
+detach `kita-ssh` from the VM.
 
 ## Prerequisites
 
@@ -34,8 +36,8 @@ terraform init && terraform validate
   apply Kita again.
 - The commit to deploy is on `main` at github.com/IVIR3zaM/Kita (the VM clones the public repository without
   credentials). Get its full SHA with `git rev-parse origin/main`.
-- Your SSH key logs in as root on the VM, and you have a Hetzner API token and a Cloudflare API token that can
-  edit DNS in the zone. Cloudflare SSL/TLS mode is Full (the origin certificate is self-signed).
+- Your SSH key logs in as root on the VM, and you have a Hetzner API token with read and write access (Kita
+  manages the `kita-ssh` firewall) and a Cloudflare API token that can edit DNS in the zone. Cloudflare SSL/TLS mode is Full (the origin certificate is self-signed).
 
 ## Deploy
 
@@ -52,6 +54,7 @@ terraform init && terraform validate
    | `kita_repo_url` | Public Git URL | `https://github.com/IVIR3zaM/Kita.git` |
    | `server_label_selector` | Label selector of the Gateway VM | `project=gateway` |
    | `ssh_private_key_path` | Private key for root on the VM | `~/.ssh/id_ed25519` |
+   | `ssh_allow_cidrs` | CIDRs allowed to SSH for the deploy | this machine's public IPv4 |
 
 2. Apply:
 

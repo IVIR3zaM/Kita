@@ -9,3 +9,4 @@ kita_git_ref         = "0000000000000000000000000000000000000000"
 # kita_repo_url         = "https://github.com/IVIR3zaM/Kita.git"
 # server_label_selector = "project=gateway"
 # ssh_private_key_path  = "~/.ssh/id_ed25519"
+# ssh_allow_cidrs       = []  # empty: this machine's public IPv4, detected on every plan

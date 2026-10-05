@@ -1,5 +1,5 @@
 variable "hcloud_token" {
-  description = "Hetzner Cloud API token with read access to the project holding the Gateway VM."
+  description = "Hetzner Cloud API token with read and write access to the project holding the Gateway VM."
   type        = string
   sensitive   = true
 }
@@ -51,4 +51,10 @@ variable "ssh_private_key_path" {
   description = "Private key that logs in as root on the Gateway VM."
   type        = string
   default     = "~/.ssh/id_ed25519"
+}
+
+variable "ssh_allow_cidrs" {
+  description = "CIDRs allowed to SSH to the Gateway VM for the deploy. Default: this machine's public IPv4, detected on every plan."
+  type        = list(string)
+  default     = []
 }

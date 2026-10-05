@@ -18,7 +18,28 @@ data "hcloud_servers" "gateway" {
   }
 }
 
+# The deploying machine's public IPv4, re-read on every plan so a changing IP (e.g. Starlink) still gets in.
+data "http" "my_ip_primary" {
+  url = "https://api.ipify.org"
+  retry {
+    attempts = 2
+  }
+}
+
+data "http" "my_ip_fallback" {
+  url = "https://ipv4.icanhazip.com"
+  retry {
+    attempts = 2
+  }
+}
+
 locals {
+  detected_ip = try(
+    chomp(data.http.my_ip_primary.response_body),
+    chomp(data.http.my_ip_fallback.response_body),
+  )
+  ssh_allow_cidrs = length(var.ssh_allow_cidrs) == 0 ? ["${local.detected_ip}/32"] : var.ssh_allow_cidrs
+
   server     = data.hcloud_servers.gateway.servers[0]
   deploy_dir = "/root/kita-deploy"
 
@@ -43,8 +64,33 @@ resource "cloudflare_dns_record" "kita" {
   ttl     = 1
 }
 
+# Kita's own firewall on the Gateway VM: SSH from the deploying machine only. Hetzner combines the rules of all
+# firewalls on a server, so this only adds access next to Gateway's firewall.
+resource "hcloud_firewall" "kita_ssh" {
+  name = "kita-ssh"
+
+  rule {
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "22"
+    source_ips  = local.ssh_allow_cidrs
+    description = "SSH for Kita deploys"
+  }
+
+  apply_to {
+    label_selector = var.server_label_selector
+  }
+
+  lifecycle {
+    precondition {
+      condition     = length(var.ssh_allow_cidrs) > 0 || can(regex("^[0-9]{1,3}(\\.[0-9]{1,3}){3}$", local.detected_ip))
+      error_message = "Could not detect this machine's public IPv4 (got \"${local.detected_ip}\"). Set ssh_allow_cidrs."
+    }
+  }
+}
+
 resource "terraform_data" "install" {
-  depends_on = [cloudflare_dns_record.kita]
+  depends_on = [cloudflare_dns_record.kita, hcloud_firewall.kita_ssh]
 
   triggers_replace = {
     git_ref    = var.kita_git_ref
