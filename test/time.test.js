@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseTime, formatTime, roundTo5, stepTime } from '../src/domain/time.js';
+import { parseTime, formatTime, roundTo5, stepTime, hoursToMinutes, minutesToHours, parseHours } from '../src/domain/time.js';
 
 test('parseTime converts HH:MM to minutes', () => {
   assert.equal(parseTime('00:00'), 0);
@@ -25,4 +25,27 @@ test('stepTime moves by 5 minutes and clamps to 00:00..23:55', () => {
   assert.equal(stepTime(540, -5), 535);
   assert.equal(stepTime(0, -5), 0);
   assert.equal(stepTime(1435, 5), 1435);
+});
+
+test('hoursToMinutes converts hours to minutes rounded to 5', () => {
+  assert.equal(hoursToMinutes(30), 1800);
+  assert.equal(hoursToMinutes(27.5), 1650);
+  assert.equal(hoursToMinutes(0.3), 20);
+  assert.equal(hoursToMinutes(0), 0);
+});
+
+test('minutesToHours converts minutes to hours with at most 2 decimals', () => {
+  assert.equal(minutesToHours(1650), 27.5);
+  assert.equal(minutesToHours(1800), 30);
+  assert.equal(minutesToHours(20), 0.33);
+});
+
+test('parseHours reads typed hours (also with a comma) and rejects bad input', () => {
+  assert.equal(parseHours('30'), 1800);
+  assert.equal(parseHours('27.5'), 1650);
+  assert.equal(parseHours('27,5'), 1650);
+  assert.equal(parseHours(' 0,3 '), 20);
+  assert.equal(parseHours(''), null);
+  assert.equal(parseHours('-1'), null);
+  assert.equal(parseHours('abc'), null);
 });

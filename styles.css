@@ -93,9 +93,6 @@ h1 { font-size: 1.2rem; margin: 0; min-width: 0; overflow-wrap: anywhere; }
   width: 100%;
   min-width: 0;
 }
-.with-hint { display: flex; align-items: center; gap: 8px; }
-.with-hint input { flex: 1; }
-.hint { color: var(--text); white-space: nowrap; }
 
 /* Now buttons */
 .now { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

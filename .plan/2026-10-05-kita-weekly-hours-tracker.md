@@ -37,6 +37,7 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 - D13 Colors: open-unused dim slate, no-Kita a muted red hatch over the whole bar, actual solid teal, planned amber with diagonal stripes so it differs by pattern too; a legend under the week | confirmed
 - D14 nginx serves the checkout /opt/kita with an allow-list (/, /index.html, /styles.css, /src/), 404 for everything else and Cache-Control no-cache; install.sh runs as root with no service user, cert in /etc/kita/tls | confirmed
 - D15 N09 is a live human visual gate after the N08 acceptance check | confirmed
+- D16 The weekly allowance is entered and shown in hours (decimal, e.g. 30 or 27.5; spinner step 0.5; typed values convert to minutes rounded to the nearest 5); settings and weeks keep storing minutes (D4), so no data migration | confirmed
 
 ## Graph
 
@@ -50,7 +51,8 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 | N06 | app shell and week view | exec | N02,N03,N04 | opus/sonnet | 1 | 0 | DONE | |
 | N07 | project docs | exec | N05,N06 | sonnet/sonnet | 2 | 0 | DONE | |
 | N08 | plan acceptance | check | N07 | -/sonnet | 1 | 0 | DONE | |
-| N09 | visual gate | gate | N08 | -/- | 0 | 0 | TODO | |
+| N09 | visual gate | gate | N10 | -/- | 0 | 1 | TODO | |
+| N10 | allowance input in hours | exec | N08 | sonnet/sonnet | 1 | 0 | DONE | |
 
 ## N01 preflight
 Do: Confirm the starting point before any work: verify passes on the untouched tree, Node is 22, the push
@@ -236,9 +238,41 @@ Done when:
 ## N09 visual gate
 Do: The user looks at the running app (`python3 -m http.server 8080 --bind 127.0.0.1`, then
 http://127.0.0.1:8080) on a phone-sized window and on desktop and approves or lists defects (D15).
+Context: D16 the settings now ask for the weekly allowance in hours (30 by default), not minutes.
 Done when:
-- C1 [human] The look and feel at 375px and desktop is approved: colors, legend, tap targets and the
-  expand-row controls (D10, D13) are fine to ship.
+- C1 [human] The look and feel at 375px and desktop is approved: colors, legend, tap targets, the
+  expand-row controls (D10, D13) and the hours-based allowance setting (D16) are fine to ship.
+
+## N10 allowance input in hours
+Do: Let the user enter the weekly allowance in hours instead of minutes. Add pure hours/minutes conversion to
+src/domain/time.js, have the view model expose the allowance in hours, relabel the setting in both languages,
+and make the shell's settings input and its parsing work in hours. Stored settings and weeks stay in minutes.
+Context: D16 hours input: decimal (30, 27.5), `<input type="number" inputmode="decimal" min="0" step="0.5">`;
+  a typed value (also with a German comma, "27,5") converts to minutes rounded to the nearest 5 (roundTo5,
+  src/domain/time.js:14); empty, negative or non-numeric input is rejected and re-rendered as today
+  (src/app.js:109-112). The "= 30 h" hint beside the input goes away (src/app.js:227, view src/ui/view.js:120,
+  styles styles.css:96-98 removed if unused). D4 settings.allowanceMinutes and week.allowanceMinutes stay
+  minutes; storage.js is untouched. Labels: src/i18n.js:10 "Wochenkontingent (Stunden)", src/i18n.js:38
+  "Weekly allowance (hours)". The view model (src/ui/view.js:116-120) gives the input value as a plain number
+  of hours (minutes / 60, at most 2 decimals, "." as decimal point since number inputs need it); the header
+  text (src/ui/view.js:111) is unchanged. Pure core rules: time.js and view.js stay pure; only app.js reads
+  the DOM.
+Read: `src/domain/time.js`, `src/ui/view.js`, `src/app.js`, `src/i18n.js`, `test/time.test.js`, `test/view.test.js`
+Write: `src/domain/time.js`, `src/ui/view.js`, `src/app.js`, `src/i18n.js`, `styles.css`, `test/time.test.js`,
+  `test/view.test.js`
+Test first: time.js: 30 h gives 1800 min, 27.5 h gives 1650, 0.3 h (18 min) gives 20, and 1650 min gives
+  27.5 h; view.js: default settings give an allowance input value of 30 and 1650 minutes give 27.5, in both
+  languages, with no "= ... h" hint field left.
+Done when:
+- C1 [cmd] `node --test test/time.test.js test/view.test.js`
+- C2 [cmd] `grep -q "Wochenkontingent (Stunden)" src/i18n.js && grep -q "Weekly allowance (hours)" src/i18n.js && ! grep -nE "Minuten\)|minutes\)" src/i18n.js`
+- C3 [visual] At 375px on a fresh profile (German, dark): the settings show "Wochenkontingent (Stunden)" with
+  30 and no minutes hint; the worked example (Mon 08:00-13:40, Tue start 08:20) still gives Tue 14:25 and
+  Wed-Fri 08:00-14:05; entering 27,5 (or 27.5) makes the header read "von 27,5 h", the plan shrinks
+  accordingly, and after reload the input still shows 27.5; in English the label reads "Weekly allowance (hours)".
+- C4 [review] Conversion lives in src/domain/time.js with tests; app.js only reads the input and calls it;
+  storage.js and the stored shapes (D4) are unchanged; no unused hint CSS or i18n keys remain.
+- C5 [cmd] `node --test`
 
 ## Log
 
@@ -322,4 +356,20 @@ verify: PASS
 
 ### N08 try 1 · 2026-10-05
 check: PASS 4/4
+verify: PASS
+
+### N09 try 1 · 2026-10-05
+human: Settings asks for weekly allowance in minutes; it should be entered in hours
+
+### N09 replan 1 · 2026-10-05
+plan: REPLANNED +N10
+- Cause: at the visual gate the human found Settings asks for the weekly allowance in minutes; it should be entered in hours
+- Added D16 (allowance entered in decimal hours, stored as minutes, no migration) and fix node N10 (sonnet/sonnet, deps N08) for time.js conversion, view model, i18n labels and the settings input
+- N09 now depends on N10 and its C1 also covers the hours-based allowance setting
+
+### N10 try 1 · 2026-10-05
+exec: DONE · 42 passed
+- Added hoursToMinutes, minutesToHours, parseHours (comma ok, round to 5) to time.js; view exposes allowanceHours number, hint removed; app.js input in hours; labels and hint CSS updated
+- Kept data-setting=allowanceMinutes field key; stored shapes unchanged
+check: PASS 3/3
 verify: PASS

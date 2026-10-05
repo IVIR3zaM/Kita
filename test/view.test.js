@@ -119,3 +119,18 @@ test('navigation: next stops at the current week', () => {
   assert.equal(view(workedExample(), { today: '2026-10-13' }).nav.canNext, true);
   assert.equal(view(workedExample()).nav.label, 'KW 41 · 2026');
 });
+
+test('settings expose the allowance as plain hours and no hint', () => {
+  for (const lang of ['de', 'en']) {
+    const v = view(createWeek(KEY, settings), { lang });
+    assert.equal(v.settings.allowanceHours, 30);
+    const v2 = view(createWeek(KEY, settings), { lang, settings: { ...settings, allowanceMinutes: 1650 } });
+    assert.equal(v2.settings.allowanceHours, 27.5);
+    assert.ok(!Object.values(v2.settings).some((x) => typeof x === 'string' && x.startsWith('= ')));
+    assert.equal('allowanceMinutes' in v2.settings, false);
+  }
+  const de = view(createWeek(KEY, settings), { lang: 'de' });
+  const en = view(createWeek(KEY, settings), { lang: 'en' });
+  assert.equal(de.settings.allowanceLabel, 'Wochenkontingent (Stunden)');
+  assert.equal(en.settings.allowanceLabel, 'Weekly allowance (hours)');
+});

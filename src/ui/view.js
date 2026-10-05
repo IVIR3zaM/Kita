@@ -1,6 +1,6 @@
 // Pure view model: settings, week, planWeek result, today and now in; plain data out.
 // No DOM, no clock, no storage.
-import { formatTime, roundTo5, stepTime } from '../domain/time.js';
+import { formatTime, roundTo5, stepTime, minutesToHours } from '../domain/time.js';
 import { weekKey, compareWeeks } from '../domain/week.js';
 import { t, DEFAULT_LANG } from '../i18n.js';
 
@@ -21,8 +21,7 @@ export function formatDuration(minutes) {
 }
 
 function formatHours(minutes, lang) {
-  const h = Math.round((minutes / 60) * 100) / 100;
-  const text = String(h);
+  const text = String(minutesToHours(minutes));
   return lang === 'de' ? text.replace('.', ',') : text;
 }
 
@@ -116,8 +115,7 @@ export function buildView({ settings, week, plan, today, now, lang = DEFAULT_LAN
     settings: {
       title: t(lang, 'settingsTitle'),
       allowanceLabel: t(lang, 'allowance'),
-      allowanceMinutes: settings.allowanceMinutes,
-      allowanceHours: '= ' + formatHours(settings.allowanceMinutes, lang) + ' h',
+      allowanceHours: minutesToHours(settings.allowanceMinutes),
       openLabel: t(lang, 'openTime'),
       openText: formatTime(settings.openMinutes),
       closeLabel: t(lang, 'closeTime'),

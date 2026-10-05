@@ -1,5 +1,5 @@
 // Thin shell: storage, events, rendering. The only module that reads the clock.
-import { parseTime, stepTime } from './domain/time.js';
+import { parseTime, stepTime, parseHours } from './domain/time.js';
 import {
   weekKey, shiftWeek, compareWeeks, createWeek, applySettings,
   setActualStart, setActualEnd, toggleNoKita,
@@ -107,8 +107,8 @@ function nowAction(kind) {
 async function changeSettings(field, raw) {
   const next = { ...state.settings };
   if (field === 'allowanceMinutes') {
-    const n = Math.round(Number(raw));
-    if (!Number.isFinite(n) || n < 0 || raw === '') return render();
+    const n = parseHours(raw);
+    if (n == null) return render();
     next.allowanceMinutes = n;
   } else {
     if (!/^\d{1,2}:\d{2}/.test(raw)) return render();
@@ -224,7 +224,7 @@ function render() {
     <summary>${esc(s.title)}</summary>
     <div class="settings-grid">
       <label>${esc(s.allowanceLabel)}
-        <span class="with-hint"><input type="number" inputmode="numeric" min="0" step="5" data-setting="allowanceMinutes" value="${s.allowanceMinutes}"><span class="hint">${esc(s.allowanceHours)}</span></span>
+        <input type="number" inputmode="decimal" min="0" step="0.5" data-setting="allowanceMinutes" value="${s.allowanceHours}">
       </label>
       <label>${esc(s.openLabel)}<input type="time" step="300" data-setting="openMinutes" value="${s.openText}"></label>
       <label>${esc(s.closeLabel)}<input type="time" step="300" data-setting="closeMinutes" value="${s.closeText}"></label>
