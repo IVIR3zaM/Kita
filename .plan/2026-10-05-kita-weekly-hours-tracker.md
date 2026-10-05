@@ -1,5 +1,5 @@
 # Kita weekly hours tracker
-status: RUNNING
+status: WAITING
 created: 2026-10-05 · updated: 2026-10-05
 goal: A dark, mobile-first static web app that tracks a child's weekly Kita hours against an allowance, with its Hetzner/Cloudflare deploy and project docs
 verify: node --test
@@ -49,7 +49,7 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 | N05 | deploy to the Gateway VM | exec | N01 | sonnet/sonnet | 1 | 0 | DONE | |
 | N06 | app shell and week view | exec | N02,N03,N04 | opus/sonnet | 1 | 0 | DONE | |
 | N07 | project docs | exec | N05,N06 | sonnet/sonnet | 2 | 0 | DONE | |
-| N08 | plan acceptance | check | N07 | -/sonnet | 0 | 0 | TODO | |
+| N08 | plan acceptance | check | N07 | -/sonnet | 1 | 0 | DONE | |
 | N09 | visual gate | gate | N08 | -/- | 0 | 0 | TODO | |
 
 ## N01 preflight
@@ -317,5 +317,9 @@ verify: FAIL C4
 exec: DONE · 38 passed
 - AGENTS.md file layout now lists .gitignore (the C4 finding)
 - Other docs unchanged from try 1
+check: PASS 4/4
+verify: PASS
+
+### N08 try 1 · 2026-10-05
 check: PASS 4/4
 verify: PASS
