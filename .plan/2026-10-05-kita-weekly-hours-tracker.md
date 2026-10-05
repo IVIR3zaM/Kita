@@ -47,7 +47,7 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 | N03 | budget recalculation rule | exec | N01 | opus/sonnet | 1 | 0 | DONE | |
 | N04 | i18n and storage modules | exec | N01 | sonnet/sonnet | 2 | 0 | DONE | |
 | N05 | deploy to the Gateway VM | exec | N01 | sonnet/sonnet | 1 | 0 | DONE | |
-| N06 | app shell and week view | exec | N02,N03,N04 | opus/sonnet | 0 | 0 | TODO | |
+| N06 | app shell and week view | exec | N02,N03,N04 | opus/sonnet | 1 | 0 | DONE | |
 | N07 | project docs | exec | N05,N06 | sonnet/sonnet | 0 | 0 | TODO | |
 | N08 | plan acceptance | check | N07 | -/sonnet | 0 | 0 | TODO | |
 | N09 | visual gate | gate | N08 | -/- | 0 | 0 | TODO | |
@@ -294,5 +294,13 @@ verify: PASS
 exec: DONE · 29 passed (node --test), 7 in i18n.test.js
 - src/i18n.js, src/storage.js, test/i18n.test.js present; full node --test now exits 0
 - No code change needed this try; prior C3 failure no longer reproduces
+check: PASS 2/2
+verify: PASS
+
+### N06 try 1 · 2026-10-05
+exec: DONE · node --test: 38 passed (view.test.js 9)
+- Added index.html, styles.css, src/ui/view.js (pure buildView + DEFAULT_SETTINGS 1800/07:00/17:00/08:00) and src/app.js (sole clock/storage user); smoke-tested at 375px with Playwright: worked example, noKita, EN persistence, prev/next all as specified, no horizontal scroll
+- Steppers move 5 min; start steps from planned start, end from planned end when unset (clamped >= start); clear resets actuals and noKita; settings edits apply to the stored calendar-current week, unsaved weeks rebuild from settings
+- Allowance setting is a minutes input (per i18n label) with an '= 30 h' hint; started days show a planned segment plus an actual-start marker
 check: PASS 2/2
 verify: PASS
