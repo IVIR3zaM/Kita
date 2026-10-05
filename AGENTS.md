@@ -1,3 +1,56 @@
+# Kita
+
+Kita is a small weekly hours tracker for a daycare (Kita) allowance. It is a static, offline-first web app
+with a German (default) and English UI. A week holds a minute allowance (settings: allowance, opening time,
+closing time, usual drop-off time); each day has a planned or actual drop-off and pick-up, or is marked
+"no Kita". The app recalculates the remaining budget for the week and warns when the allowance is exceeded or
+pick-up is after closing. Settings, language and weeks are stored in the browser's IndexedDB.
+
+This file is the single source of truth for the project; `CLAUDE.md` only imports it, and `README.md` is for
+humans.
+
+## Setup, run, test, deploy
+
+- Setup: nothing to install. There are no npm dependencies and no build step. Node 22 is needed only to run
+  the tests.
+- Run: `python3 -m http.server`, then open http://localhost:8000/. Any static file server works; ES modules
+  need http, not `file://`.
+- Test: `node --test` (Node 22, built-in test runner, runs `test/*.test.js`).
+- Deploy: Terraform and nginx on the Gateway VM; see `deploy/README.md`. Deploying is documented, never run
+  by agents.
+
+## File layout
+
+- `index.html`: the single page; loads `src/app.js` as an ES module.
+- `styles.css`: all styles.
+- `src/app.js`: the thin shell. Wires storage, events and rendering; the only module that reads the clock.
+- `src/storage.js`: the only module that touches IndexedDB (settings, language, weeks). No domain logic.
+- `src/i18n.js`: pure string tables (`de`, `en`) and lookup.
+- `src/domain/time.js`: pure parsing, formatting, rounding and stepping of times in minutes.
+- `src/domain/week.js`: pure week keys, week navigation, week creation and edits (settings, actual start/end,
+  no-Kita toggle).
+- `src/domain/budget.js`: pure weekly budget recalculation (`planWeek`).
+- `src/ui/view.js`: pure view model (settings, week, plan, today and now in; plain data out). No DOM.
+- `test/`: `node --test` tests, one file per pure module: `budget`, `i18n`, `time`, `view`, `week`.
+- `deploy/`: `README.md` and `terraform/` (Gateway VM deploy; `files/install.sh`, `templates/kita.conf.tftpl`,
+  `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, `terraform.tfvars.example`).
+- `.plan/`, `.planzilla/`, `.agents/`, `.claude/`: Planzilla plans and vendored tooling (see below).
+- `.gitignore`: ignores Terraform state, variable files and local `.terraform/` data.
+- `LICENSE`: Apache-2.0. Do not edit it.
+- `AGENTS.md`, `CLAUDE.md`, `README.md`: project docs.
+
+## Engineering rules
+
+- Strict TDD: write the failing test first, see it fail, write the minimal code to pass, refactor, rerun.
+- KISS and YAGNI: the simplest thing that works; nothing for a future that is not asked for.
+- Pure functional core: `src/domain/`, `src/i18n.js` and `src/ui/view.js` are pure. They never read the
+  clock, the DOM or storage, and never mutate their input. `today` and `now` are passed in as arguments;
+  only `src/app.js` reads the clock.
+- Thin shell: the DOM (`src/app.js`, `index.html`) and IndexedDB (only behind `src/storage.js`) hold no
+  domain logic. Nothing else touches IndexedDB.
+- No npm dependencies and no build step. The browser loads the source files as they are.
+- Tests cover the pure core; the shell stays too thin to need its own.
+
 <!-- planzilla:begin -->
 ## Planzilla
 

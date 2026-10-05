@@ -48,7 +48,7 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 | N04 | i18n and storage modules | exec | N01 | sonnet/sonnet | 2 | 0 | DONE | |
 | N05 | deploy to the Gateway VM | exec | N01 | sonnet/sonnet | 1 | 0 | DONE | |
 | N06 | app shell and week view | exec | N02,N03,N04 | opus/sonnet | 1 | 0 | DONE | |
-| N07 | project docs | exec | N05,N06 | sonnet/sonnet | 0 | 0 | TODO | |
+| N07 | project docs | exec | N05,N06 | sonnet/sonnet | 2 | 0 | DONE | |
 | N08 | plan acceptance | check | N07 | -/sonnet | 0 | 0 | TODO | |
 | N09 | visual gate | gate | N08 | -/- | 0 | 0 | TODO | |
 
@@ -303,4 +303,19 @@ exec: DONE · node --test: 38 passed (view.test.js 9)
 - Steppers move 5 min; start steps from planned start, end from planned end when unset (clamped >= start); clear resets actuals and noKita; settings edits apply to the stored calendar-current week, unsaved weeks rebuild from settings
 - Allowance setting is a minutes input (per i18n label) with an '= 30 h' hint; started days show a planned segment plus an actual-start marker
 check: PASS 2/2
+verify: PASS
+
+### N07 try 1 · 2026-10-05
+exec: DONE · 38 passed
+- AGENTS.md rewritten (app, setup/run/test/deploy, layout, rules) above the untouched planzilla block; CLAUDE.md is @AGENTS.md; README.md added
+- Documented the run URL as http://localhost:8000/ (http.server default)
+check: PASS 4/4
+verify: FAIL C4
+- C4 AGENTS.md:File layout - top-level path .gitignore exists (tracked) but is not listed - expected every top-level path listed
+
+### N07 try 2 · 2026-10-05
+exec: DONE · 38 passed
+- AGENTS.md file layout now lists .gitignore (the C4 finding)
+- Other docs unchanged from try 1
+check: PASS 4/4
 verify: PASS
