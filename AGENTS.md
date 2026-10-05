@@ -3,8 +3,9 @@
 Kita is a small weekly hours tracker for a daycare (Kita) allowance. It is a static, offline-first web app
 with a German (default) and English UI. A week holds a minute allowance (settings: allowance, opening time,
 closing time, usual drop-off time); each day has a planned or actual drop-off and pick-up, or is marked
-"no Kita". The app recalculates the remaining budget for the week and warns when the allowance is exceeded or
-pick-up is after closing. Settings, language and weeks are stored in the browser's IndexedDB.
+"no Kita". The app recalculates the remaining budget for the week (a day never runs past closing time; the rest
+goes to the other days), warns when the allowance is exceeded and shows how much would stay unused. Settings,
+language and weeks are stored in the browser's IndexedDB.
 
 This file is the single source of truth for the project; `CLAUDE.md` only imports it, and `README.md` is for
 humans.

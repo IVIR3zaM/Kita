@@ -31,7 +31,7 @@ test('worked example: 1800 allowance, Mon 08:00-13:40 complete, Tue started 08:2
   });
   const r = planWeek(week);
   assert.equal(r.usedMinutes, 340);
-  assert.deepEqual(r.days[0], { date: '2026-10-05', start: hm(8), end: hm(13, 40), kind: 'complete', capped: false });
+  assert.deepEqual(r.days[0], { date: '2026-10-05', start: hm(8), end: hm(13, 40), kind: 'complete' });
   assert.equal(r.days[1].kind, 'started');
   assert.equal(r.days[1].start, hm(8, 20));
   assert.equal(r.days[1].end, hm(14, 25));
@@ -39,11 +39,10 @@ test('worked example: 1800 allowance, Mon 08:00-13:40 complete, Tue started 08:2
     assert.equal(d.kind, 'planned');
     assert.equal(d.start, hm(8));
     assert.equal(d.end, hm(14, 5));
-    assert.equal(d.capped, false);
   }
   assert.equal(r.plannedMinutes, 4 * 365);
   assert.equal(r.overAllowance, false);
-  assert.equal(r.overClosing, false);
+  assert.equal(r.unusedMinutes, 0);
 });
 
 test('30h from 08:00 with no actuals gives 08:00-14:00 on all five days', () => {
@@ -71,6 +70,7 @@ test('leftover never exceeds the remaining budget when it is not a multiple of 5
   const shares = r.days.map((d) => d.end - d.start);
   assert.deepEqual(shares, [365, 365, 365, 360, 360]);
   assert.ok(r.plannedMinutes <= 1817);
+  assert.equal(r.unusedMinutes, 2);
 });
 
 test('a noKita day raises the other days share and ignores stored actuals', () => {
@@ -88,20 +88,18 @@ test('a noKita day raises the other days share and ignores stored actuals', () =
   }
 });
 
-test('a share past 17:00 ends at closing and the rest moves to the other days, without a warning', () => {
+test('a share past 17:00 ends at closing and the rest moves to the other days', () => {
   const r = planWeek(makeWeek({
     allowanceMinutes: 2400,
     days: { 0: { plannedStart: hm(12) } },
   }));
   // share 480: Mon 12:00 + 480 = 20:00 -> 17:00 (300); the other 2100 over Tue-Fri = 525 each
   assert.equal(r.days[0].end, hm(17));
-  assert.equal(r.days[0].capped, false);
   for (const d of r.days.slice(1)) {
     assert.equal(d.end, hm(16, 45));
-    assert.equal(d.capped, false);
   }
   assert.equal(r.plannedMinutes, 2400);
-  assert.equal(r.overClosing, false);
+  assert.equal(r.unusedMinutes, 0);
 });
 
 test('late drop-off today plus a noKita day: today ends at closing, the rest goes to the other days', () => {
@@ -112,23 +110,19 @@ test('late drop-off today plus a noKita day: today ends at closing, the rest goe
   // 1800 over Mon, Wed-Fri = 450 each; Mon 11:00 fits only 360 -> 17:00, Wed-Fri share 1440 = 480 each
   assert.equal(r.days[0].kind, 'started');
   assert.equal(r.days[0].end, hm(17));
-  assert.equal(r.days[0].capped, false);
   for (const d of r.days.slice(2)) assert.equal(d.end, hm(16));
   assert.equal(r.plannedMinutes, 1800);
-  assert.equal(r.overClosing, false);
+  assert.equal(r.unusedMinutes, 0);
 });
 
-test('when the allowance does not fit before closing on any day, the days are capped and flagged', () => {
+test('what does not fit before closing on any day is reported as unused', () => {
   const r = planWeek(makeWeek({ allowanceMinutes: 3600 }));
-  for (const d of r.days) {
-    assert.equal(d.end, hm(17));
-    assert.equal(d.capped, true);
-  }
+  for (const d of r.days) assert.equal(d.end, hm(17));
   assert.equal(r.plannedMinutes, 2700);
-  assert.equal(r.overClosing, true);
+  assert.equal(r.unusedMinutes, 900);
 });
 
-test('actuals above the allowance give share 0 and overAllowance', () => {
+test('actuals above the allowance give share 0, overAllowance and nothing unused', () => {
   const r = planWeek(makeWeek({
     allowanceMinutes: 600,
     days: {
@@ -142,15 +136,7 @@ test('actuals above the allowance give share 0 and overAllowance', () => {
   }
   assert.equal(r.plannedMinutes, 0);
   assert.equal(r.overAllowance, true);
-});
-
-test('a complete day ending after closing sets overClosing', () => {
-  const r = planWeek(makeWeek({
-    allowanceMinutes: 1800,
-    days: { 0: { actualStart: hm(9), actualEnd: hm(17, 30) } },
-  }));
-  assert.equal(r.days[0].capped, false);
-  assert.equal(r.overClosing, true);
+  assert.equal(r.unusedMinutes, 0);
 });
 
 test('planWeek does not mutate its input', () => {

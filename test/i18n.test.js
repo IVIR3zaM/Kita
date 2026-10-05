@@ -39,9 +39,13 @@ test('every weekday has a name in both languages', () => {
   }
 });
 
+test('the closing-time warning string is gone', () => {
+  for (const lang of LANGS) assert.equal(STRINGS[lang].afterClosing, undefined);
+});
+
 test('required UI keys exist in both languages', () => {
   const keys = ['appTitle', 'settingsTitle', 'allowance', 'openTime', 'closeTime', 'normalStart',
-    'usedOfAllowance', 'overLimit', 'afterClosing', 'dropOffNow', 'pickUpNow', 'noKita', 'clear',
+    'usedOfAllowance', 'overLimit', 'unusedThisWeek', 'dropOffNow', 'pickUpNow', 'noKita', 'clear',
     'prevWeek', 'nextWeek', 'weekLabel', 'legendUnused', 'legendNoKita', 'legendActual',
     'legendPlanned', 'language'];
   for (const lang of LANGS) for (const k of keys) assert.ok(STRINGS[lang][k], `${lang}.${k}`);

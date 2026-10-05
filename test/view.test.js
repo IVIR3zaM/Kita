@@ -76,9 +76,11 @@ test('fresh week: all five days planned 08:00-14:00', () => {
   const v = view(createWeek(KEY, settings), { today: '2026-10-05' });
   for (const d of v.days) assertSeg(d.segments[0], 'planned', hm(8), hm(14));
   assert.equal(v.header.used, '0:00 von 30 h genutzt');
+  assert.equal(v.header.unused, null);
+  assert.equal('closingWarning' in v.header, false);
 });
 
-test('over limit and capped days carry warnings', () => {
+test('over limit warns; time that does not fit is shown as unused, with no closing warning', () => {
   let week = createWeek(KEY, { ...settings, allowanceMinutes: 300 });
   week = setActualStart(week, '2026-10-05', hm(8));
   week = setActualEnd(week, '2026-10-05', hm(14));
@@ -87,7 +89,9 @@ test('over limit and capped days carry warnings', () => {
 
   let late = createWeek(KEY, { ...settings, allowanceMinutes: 3600 });
   const v2 = view(late, { lang: 'en' });
-  assert.ok(v2.days.every((d) => d.capped && d.warning === 'Pick-up after closing time (17:00)'));
+  assert.equal(v2.header.unused, '15:00 would stay unused this week');
+  assert.ok(v2.days.every((d) => !('warning' in d) && !('capped' in d)));
+  assert.equal(v.header.unused, null);
   assertSeg(v2.days[0].segments[0], 'planned', hm(8), hm(17));
 });
 

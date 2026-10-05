@@ -52,8 +52,6 @@ function dayView(day, planned, index, ctx) {
   if (kind === 'noKita') segments = [segment('noKita', open, close, open, close)];
   else segments = [segment(kind === 'complete' ? 'actual' : 'planned', planned.start, planned.end, open, close)];
 
-  const lateComplete = kind === 'complete' && planned.end > close;
-  const warn = planned.capped || lateComplete;
   const hasStart = !day.noKita && day.actualStart != null;
 
   return {
@@ -64,8 +62,6 @@ function dayView(day, planned, index, ctx) {
     expanded: Object.prototype.hasOwnProperty.call(expanded, day.date) ? !!expanded[day.date] : isToday,
     kind,
     noKita: kind === 'noKita',
-    capped: planned.capped,
-    warning: warn ? t(lang, 'afterClosing', { time: formatTime(close) }) : null,
     startText: planned.start == null ? '' : formatTime(planned.start),
     endText: planned.end == null ? '' : formatTime(planned.end),
     actualStartText: day.actualStart == null ? null : formatTime(day.actualStart),
@@ -110,7 +106,7 @@ export function buildView({ settings, week, plan, today, now, lang = DEFAULT_LAN
         allowance: formatHours(week.allowanceMinutes, lang),
       }),
       overLimit: plan.overAllowance ? t(lang, 'overLimit', { over: formatDuration(over) }) : null,
-      closingWarning: plan.overClosing ? t(lang, 'afterClosing', { time: formatTime(close) }) : null,
+      unused: plan.unusedMinutes > 0 ? t(lang, 'unusedThisWeek', { unused: formatDuration(plan.unusedMinutes) }) : null,
     },
     settings: {
       title: t(lang, 'settingsTitle'),

@@ -15,8 +15,8 @@ function isStarted(day) {
  *   days: Array<{date:string, plannedStart:number, actualStart:number|null,
  *   actualEnd:number|null, noKita:boolean}>}} week
  * @returns {{days: Array<{date:string, start:number|null, end:number|null,
- *   kind:'complete'|'started'|'planned'|'noKita', capped:boolean}>,
- *   usedMinutes:number, plannedMinutes:number, overAllowance:boolean, overClosing:boolean}}
+ *   kind:'complete'|'started'|'planned'|'noKita'}>,
+ *   usedMinutes:number, plannedMinutes:number, unusedMinutes:number, overAllowance:boolean}}
  */
 export function planWeek(week) {
   const { allowanceMinutes, closeMinutes, days } = week;
@@ -42,32 +42,26 @@ export function planWeek(week) {
     }
     open = open.filter((i) => steps[i] < room[i]);
   }
-  const unplaced = stepsLeft > 0 && remaining.length > 0;
-
   let plannedMinutes = 0;
-  let overClosing = false;
 
   const out = days.map((day, i) => {
     if (day.noKita) {
-      return { date: day.date, start: null, end: null, kind: 'noKita', capped: false };
+      return { date: day.date, start: null, end: null, kind: 'noKita' };
     }
     if (isComplete(day)) {
-      if (day.actualEnd > closeMinutes) overClosing = true;
-      return { date: day.date, start: day.actualStart, end: day.actualEnd, kind: 'complete', capped: false };
+      return { date: day.date, start: day.actualStart, end: day.actualEnd, kind: 'complete' };
     }
     const start = starts[i];
     const end = start + steps[i] * STEP;
-    const capped = unplaced;
-    if (capped) overClosing = true;
     plannedMinutes += end - start;
-    return { date: day.date, start, end, kind: isStarted(day) ? 'started' : 'planned', capped };
+    return { date: day.date, start, end, kind: isStarted(day) ? 'started' : 'planned' };
   });
 
   return {
     days: out,
     usedMinutes,
     plannedMinutes,
+    unusedMinutes: Math.max(0, allowanceMinutes - usedMinutes - plannedMinutes),
     overAllowance: usedMinutes + plannedMinutes > allowanceMinutes,
-    overClosing,
   };
 }

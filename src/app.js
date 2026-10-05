@@ -176,14 +176,13 @@ function dayHtml(d, labels) {
       `<span class="${d.kind === 'complete' ? 'actual' : 'planned'}">${esc(d.endText)}</span>`;
   const startShown = d.actualStartText ?? d.startText ?? '';
   const endShown = d.actualEndText ?? (d.controls.endEnabled ? d.endText : '--:--');
-  const classes = ['day', d.isToday ? 'today' : '', d.expanded ? 'expanded' : '', d.noKita ? 'nokita' : '',
-    d.warning ? 'warn' : ''].filter(Boolean).join(' ');
+  const classes = ['day', d.isToday ? 'today' : '', d.expanded ? 'expanded' : '', d.noKita ? 'nokita' : '']
+    .filter(Boolean).join(' ');
   return `<li class="${classes}">
     <button type="button" class="day-head" data-action="toggle" data-date="${d.date}" aria-expanded="${d.expanded}">
       <span class="day-name">${esc(d.weekday)} <small>${esc(d.dateLabel)}</small></span>
       <span class="day-times">${times}</span>
       <span class="bar">${segs}${marker}</span>
-      ${d.warning ? `<span class="warning">&#9888; ${esc(d.warning)}</span>` : ''}
     </button>
     ${d.expanded ? `<div class="controls">
       <div class="steppers">
@@ -216,8 +215,8 @@ function render() {
       <div class="lang" role="group" aria-label="${esc(v.languageLabel)}">${langButtons}</div>
     </div>
     <p class="used${v.header.overLimit ? ' over' : ''}">${esc(v.header.used)}</p>
+    ${v.header.unused ? `<p class="unused">${esc(v.header.unused)}</p>` : ''}
     ${v.header.overLimit ? `<p class="alert">&#9888; ${esc(v.header.overLimit)}</p>` : ''}
-    ${v.header.closingWarning ? `<p class="alert soft">&#9888; ${esc(v.header.closingWarning)}</p>` : ''}
   </header>
 
   <details class="settings"${state.settingsOpen ? ' open' : ''}>
