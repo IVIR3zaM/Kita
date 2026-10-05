@@ -11,7 +11,8 @@ Terraform's state lives in Cloudflare R2. You deploy either from your machine or
 (`.github/workflows/ci.yml`); both use the same state and lock.
 
 nginx serves `/`, `/index.html`, `/styles.css` and everything under `/src/` from `/opt/kita`; every other path
-answers 404. Every response carries `Cache-Control: no-cache`.
+answers 404. Every response carries `Cache-Control: private, no-cache`, so browsers revalidate
+and Cloudflare does not cache.
 
 ## SSH access from a changing IP
 
