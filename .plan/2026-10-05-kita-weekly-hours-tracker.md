@@ -45,7 +45,7 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 | N01 | preflight | check | - | -/- | 1 | 1 | DONE | |
 | N02 | time and week domain | exec | N01 | sonnet/sonnet | 1 | 0 | DONE | |
 | N03 | budget recalculation rule | exec | N01 | opus/sonnet | 1 | 0 | DONE | |
-| N04 | i18n and storage modules | exec | N01 | sonnet/sonnet | 1 | 0 | RETRY | fail C3 |
+| N04 | i18n and storage modules | exec | N01 | sonnet/sonnet | 2 | 0 | DONE | |
 | N05 | deploy to the Gateway VM | exec | N01 | sonnet/sonnet | 1 | 0 | DONE | |
 | N06 | app shell and week view | exec | N02,N03,N04 | opus/sonnet | 0 | 0 | TODO | |
 | N07 | project docs | exec | N05,N06 | sonnet/sonnet | 0 | 0 | TODO | |
@@ -288,4 +288,11 @@ verify: PASS
 verify: PASS
 
 ### N02 try 1 · 2026-10-05
+verify: PASS
+
+### N04 try 2 · 2026-10-05
+exec: DONE · 29 passed (node --test), 7 in i18n.test.js
+- src/i18n.js, src/storage.js, test/i18n.test.js present; full node --test now exits 0
+- No code change needed this try; prior C3 failure no longer reproduces
+check: PASS 2/2
 verify: PASS
