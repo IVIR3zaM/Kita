@@ -43,7 +43,7 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 | id | title | type | deps | model | try | rp | status | note |
 |----|-------|------|------|-------|-----|----|--------|------|
 | N01 | preflight | check | - | -/- | 1 | 1 | DONE | |
-| N02 | time and week domain | exec | N01 | sonnet/sonnet | 1 | 0 | VERIFYING | |
+| N02 | time and week domain | exec | N01 | sonnet/sonnet | 1 | 0 | DONE | |
 | N03 | budget recalculation rule | exec | N01 | opus/sonnet | 1 | 0 | DONE | |
 | N04 | i18n and storage modules | exec | N01 | sonnet/sonnet | 1 | 0 | RETRY | fail C3 |
 | N05 | deploy to the Gateway VM | exec | N01 | sonnet/sonnet | 1 | 0 | DONE | |
@@ -285,4 +285,7 @@ check: PASS 3/3
 verify: PASS
 
 ### N03 try 1 · 2026-10-05
+verify: PASS
+
+### N02 try 1 · 2026-10-05
 verify: PASS
