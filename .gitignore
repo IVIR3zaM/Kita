@@ -3,4 +3,5 @@
 *.tfvars
 *.tfstate
 *.tfstate.*
+.tool-versions
 crash.log
