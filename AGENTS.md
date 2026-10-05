@@ -24,6 +24,8 @@ humans.
 
 - `index.html`: the single page; loads `src/app.js` as an ES module.
 - `styles.css`: all styles.
+- `icons/`: `icon.svg` (favicon, the source) and `apple-touch-icon.png` (180×180, rendered from it with
+  `rsvg-convert -w 180 -h 180 icons/icon.svg -o icons/apple-touch-icon.png`).
 - `src/app.js`: the thin shell. Wires storage, events and rendering; the only module that reads the clock.
 - `src/storage.js`: the only module that touches IndexedDB (settings, language, weeks). No domain logic.
 - `src/i18n.js`: pure string tables (`de`, `en`) and lookup.

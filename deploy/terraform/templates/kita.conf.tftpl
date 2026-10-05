@@ -16,11 +16,12 @@ server {
     # below add no headers of their own, so they all inherit this one.
     add_header Cache-Control "private, no-cache" always;
 
-    # Allow-list: /, /index.html, /styles.css and everything under /src/.
+    # Allow-list: /, /index.html, /styles.css and everything under /src/ and /icons/.
     location = / { }
     location = /index.html { }
     location = /styles.css { }
     location ^~ /src/ { }
+    location ^~ /icons/ { }
 
     # Everything else (.git, deploy/, tests, ...) is not served.
     location / {
