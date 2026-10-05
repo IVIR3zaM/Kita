@@ -1,5 +1,5 @@
 # Kita weekly hours tracker
-status: READY
+status: RUNNING
 created: 2026-10-05 · updated: 2026-10-05
 goal: A dark, mobile-first static web app that tracks a child's weekly Kita hours against an allowance, with its Hetzner/Cloudflare deploy and project docs
 verify: node --test
@@ -42,7 +42,7 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 
 | id | title | type | deps | model | try | rp | status | note |
 |----|-------|------|------|-------|-----|----|--------|------|
-| N01 | preflight | check | - | -/- | 0 | 0 | TODO | |
+| N01 | preflight | check | - | -/- | 1 | 1 | DONE | |
 | N02 | time and week domain | exec | N01 | sonnet/sonnet | 0 | 0 | TODO | |
 | N03 | budget recalculation rule | exec | N01 | opus/sonnet | 0 | 0 | TODO | |
 | N04 | i18n and storage modules | exec | N01 | sonnet/sonnet | 0 | 0 | TODO | |
@@ -55,8 +55,10 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 ## N01 preflight
 Do: Confirm the starting point before any work: verify passes on the untouched tree, Node is 22, the push
 remote accepts this branch, a local static server and a browser for the visual checks exist, the public repo
-that install.sh will clone answers, and the read-only Sonar deploy reference is present. terraform is not
-installed here; later nodes skip `terraform fmt` when it is missing (D1), so it is not checked.
+that install.sh will clone answers, and the read-only Sonar deploy reference can be cloned from
+github.com/IVIR3zaM/sonar at the pinned commit 8137323fb7e65223fa174eb2d42a08db963e62f4 (no local copy exists
+on this machine; N05 clones it the same way). terraform is not installed here; later nodes skip
+`terraform fmt` when it is missing (D1), so it is not checked.
 Done when:
 - C1 [cmd] `node --test`
 - C2 [cmd] `node --version | grep -q '^v22\.'`
@@ -64,7 +66,7 @@ Done when:
 - C4 [cmd] `python3 -m http.server 8099 --bind 127.0.0.1 >/dev/null 2>&1 & p=$!; sleep 1; curl -sf -o /dev/null http://127.0.0.1:8099/; r=$?; kill $p; exit $r`
 - C5 [cmd] `test -x /opt/pw-browsers/chromium-1194/chrome-linux/chrome`
 - C6 [cmd] `git ls-remote https://github.com/IVIR3zaM/Kita HEAD`
-- C7 [cmd] `test -f /home/user/ivir3zam/sonar/deploy/terraform/files/install.sh && command -v bash`
+- C7 [cmd] `d=$(mktemp -d); git clone -q https://github.com/IVIR3zaM/sonar "$d/s" && git -C "$d/s" checkout -q 8137323fb7e65223fa174eb2d42a08db963e62f4 && test -f "$d/s/deploy/terraform/files/install.sh" && command -v bash; r=$?; rm -rf "$d"; exit $r`
 
 ## N02 time and week domain
 Do: Add two pure ES modules, test-first. src/domain/time.js: parse "HH:MM" to minutes, format minutes to
@@ -151,11 +153,13 @@ Context: D1 nothing is applied or run against the VM. D14 nginx root /opt/kita, 
   /styles.css, /src/, everything else 404, Cache-Control no-cache; cert /etc/kita/tls; root, no service user.
   Reference: lookup and postcondition main.tf:10-19, DNS record main.tf:81-88, SSH install main.tf:90-138,
   variables incl. SHA validation variables.tf, providers versions.tf:1-18, install.sh:68-107, server block
-  sonar.conf.tftpl:1-18, conf.d include README.md:72-82 (paths under /home/user/ivir3zam/sonar/deploy/).
+  sonar.conf.tftpl:1-18, conf.d include README.md:72-82 (paths under deploy/ of the reference clone).
+  Reference clone first, outside the repo: `git clone -q https://github.com/IVIR3zaM/sonar /tmp/kita-sonar-ref
+  && git -C /tmp/kita-sonar-ref checkout -q 8137323fb7e65223fa174eb2d42a08db963e62f4`; never commit it.
   kita_git_ref must be a 40-char lowercase SHA. deploy/README.md must say that `terraform validate` was not run
   and must be run (`terraform init && terraform validate`) before the first apply if the registry is
   unreachable; use example.com placeholders only.
-Read: `/home/user/ivir3zam/sonar/deploy/README.md`, `/home/user/ivir3zam/sonar/deploy/terraform/`
+Read: `/tmp/kita-sonar-ref/deploy/README.md`, `/tmp/kita-sonar-ref/deploy/terraform/`
 Write: `deploy/**`, `.gitignore`
 Test first: -
 Done when:
@@ -237,3 +241,17 @@ Done when:
   expand-row controls (D10, D13) are fine to ship.
 
 ## Log
+
+### N01 try 1 · 2026-10-05
+check: FAIL C7
+- C7 exit 1:
+
+### N01 replan 1 · 2026-10-05
+plan: REPLANNED
+- Cause: C7 looked for a local Sonar checkout at /home/user/ivir3zam/sonar, which does not exist on this machine
+- The Sonar repo is reachable at github.com/IVIR3zaM/sonar; commit 8137323fb7e6 matches every path:line the N05 brief cites
+- C7 now clones that repo at the pinned commit into a temp dir and checks deploy/terraform/files/install.sh (verified exit 0)
+- N05 (not started) now clones the reference to /tmp/kita-sonar-ref at the same commit and reads from there; no other node changed
+
+### N01 try 1 · 2026-10-05
+check: PASS 7/7
