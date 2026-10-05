@@ -22,21 +22,32 @@ export function planWeek(week) {
   const { allowanceMinutes, closeMinutes, days } = week;
 
   let usedMinutes = 0;
-  let remainingCount = 0;
   for (const day of days) {
     if (isComplete(day)) usedMinutes += day.actualEnd - day.actualStart;
-    else if (!day.noKita) remainingCount += 1;
   }
 
-  const budget = Math.max(0, allowanceMinutes - usedMinutes);
-  const steps = Math.floor(budget / STEP);
-  const baseSteps = remainingCount > 0 ? Math.floor(steps / remainingCount) : 0;
-  let extraSteps = remainingCount > 0 ? steps % remainingCount : 0;
+  // Remaining days get the budget in 5-minute steps, one step each in turn from the earliest day,
+  // until each is full up to closing time; what does not fit on one day moves to the others.
+  const starts = days.map((day) => (isStarted(day) ? day.actualStart : day.plannedStart));
+  const remaining = days.flatMap((day, i) => (day.noKita || isComplete(day) ? [] : [i]));
+  const room = days.map((day, i) => Math.max(0, Math.floor((closeMinutes - starts[i]) / STEP)));
+  const steps = days.map(() => 0);
+  let stepsLeft = Math.floor(Math.max(0, allowanceMinutes - usedMinutes) / STEP);
+  let open = remaining.filter((i) => room[i] > 0);
+  while (stepsLeft > 0 && open.length > 0) {
+    for (const i of open) {
+      if (stepsLeft === 0) break;
+      steps[i] += 1;
+      stepsLeft -= 1;
+    }
+    open = open.filter((i) => steps[i] < room[i]);
+  }
+  const unplaced = stepsLeft > 0 && remaining.length > 0;
 
   let plannedMinutes = 0;
   let overClosing = false;
 
-  const out = days.map((day) => {
+  const out = days.map((day, i) => {
     if (day.noKita) {
       return { date: day.date, start: null, end: null, kind: 'noKita', capped: false };
     }
@@ -44,22 +55,12 @@ export function planWeek(week) {
       if (day.actualEnd > closeMinutes) overClosing = true;
       return { date: day.date, start: day.actualStart, end: day.actualEnd, kind: 'complete', capped: false };
     }
-    let share = baseSteps * STEP;
-    if (extraSteps > 0) {
-      share += STEP;
-      extraSteps -= 1;
-    }
-    const started = isStarted(day);
-    const start = started ? day.actualStart : day.plannedStart;
-    let end = start + share;
-    let capped = false;
-    if (end > closeMinutes) {
-      end = Math.max(start, closeMinutes);
-      capped = true;
-      overClosing = true;
-    }
+    const start = starts[i];
+    const end = start + steps[i] * STEP;
+    const capped = unplaced;
+    if (capped) overClosing = true;
     plannedMinutes += end - start;
-    return { date: day.date, start, end, kind: started ? 'started' : 'planned', capped };
+    return { date: day.date, start, end, kind: isStarted(day) ? 'started' : 'planned', capped };
   });
 
   return {

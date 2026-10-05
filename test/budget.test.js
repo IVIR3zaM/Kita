@@ -88,18 +88,43 @@ test('a noKita day raises the other days share and ignores stored actuals', () =
   }
 });
 
-test('a share past 17:00 is capped at closing and flagged, without redistribution', () => {
+test('a share past 17:00 ends at closing and the rest moves to the other days, without a warning', () => {
   const r = planWeek(makeWeek({
     allowanceMinutes: 2400,
     days: { 0: { plannedStart: hm(12) } },
   }));
-  // share 480: Mon 12:00 + 480 = 20:00 -> capped to 17:00
+  // share 480: Mon 12:00 + 480 = 20:00 -> 17:00 (300); the other 2100 over Tue-Fri = 525 each
   assert.equal(r.days[0].end, hm(17));
-  assert.equal(r.days[0].capped, true);
+  assert.equal(r.days[0].capped, false);
   for (const d of r.days.slice(1)) {
-    assert.equal(d.end, hm(16));
+    assert.equal(d.end, hm(16, 45));
     assert.equal(d.capped, false);
   }
+  assert.equal(r.plannedMinutes, 2400);
+  assert.equal(r.overClosing, false);
+});
+
+test('late drop-off today plus a noKita day: today ends at closing, the rest goes to the other days', () => {
+  const r = planWeek(makeWeek({
+    allowanceMinutes: 1800,
+    days: { 0: { actualStart: hm(11) }, 1: { noKita: true } },
+  }));
+  // 1800 over Mon, Wed-Fri = 450 each; Mon 11:00 fits only 360 -> 17:00, Wed-Fri share 1440 = 480 each
+  assert.equal(r.days[0].kind, 'started');
+  assert.equal(r.days[0].end, hm(17));
+  assert.equal(r.days[0].capped, false);
+  for (const d of r.days.slice(2)) assert.equal(d.end, hm(16));
+  assert.equal(r.plannedMinutes, 1800);
+  assert.equal(r.overClosing, false);
+});
+
+test('when the allowance does not fit before closing on any day, the days are capped and flagged', () => {
+  const r = planWeek(makeWeek({ allowanceMinutes: 3600 }));
+  for (const d of r.days) {
+    assert.equal(d.end, hm(17));
+    assert.equal(d.capped, true);
+  }
+  assert.equal(r.plannedMinutes, 2700);
   assert.equal(r.overClosing, true);
 });
 
