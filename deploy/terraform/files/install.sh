@@ -23,8 +23,11 @@ tls_dir=/etc/kita/tls
 
 install_packages() {
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update -q
-  apt-get install -y -q git nginx openssl curl
+  # A fresh VM may still be running cloud-init's own apt install; wait for it, and for the dpkg lock, instead of
+  # failing. cloud-init exits 2 on recoverable errors and may be absent, neither of which should stop the install.
+  cloud-init status --wait >/dev/null 2>&1 || true
+  apt-get -o DPkg::Lock::Timeout=300 update -q
+  apt-get -o DPkg::Lock::Timeout=300 install -y -q git nginx openssl curl
 }
 
 checkout_app() {

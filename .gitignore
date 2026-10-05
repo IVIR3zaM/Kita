@@ -1,6 +1,7 @@
 # Terraform
 .terraform/
 *.tfvars
+deploy/terraform/backend.hcl
 *.tfstate
 *.tfstate.*
 .tool-versions

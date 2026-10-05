@@ -70,10 +70,11 @@ resource "hcloud_firewall" "kita_ssh" {
   name = "kita-ssh"
 
   rule {
-    direction   = "in"
-    protocol    = "tcp"
-    port        = "22"
-    source_ips  = local.ssh_allow_cidrs
+    direction = "in"
+    protocol  = "tcp"
+    port      = "22"
+    # Mark as sensitive to hide the owner's IPv4 from CI logs.
+    source_ips  = sensitive(local.ssh_allow_cidrs)
     description = "SSH for Kita deploys"
   }
 

@@ -24,7 +24,8 @@ node --test
 
 ## Deploy
 
-See [deploy/README.md](deploy/README.md).
+See [deploy/README.md](deploy/README.md). A GitHub Actions workflow (`.github/workflows/ci.yml`) tests every
+push and deploys `main`.
 
 ## Contributing
 

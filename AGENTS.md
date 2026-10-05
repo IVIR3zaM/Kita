@@ -17,8 +17,8 @@ humans.
 - Run: `python3 -m http.server`, then open http://localhost:8000/. Any static file server works; ES modules
   need http, not `file://`.
 - Test: `node --test` (Node 22, built-in test runner, runs `test/*.test.js`).
-- Deploy: Terraform and nginx on the Gateway VM; see `deploy/README.md`. Deploying is documented, never run
-  by agents.
+- Deploy: Terraform and nginx on the Gateway VM; see `deploy/README.md`. CI (`.github/workflows/ci.yml`)
+  deploys `main`. Deploying is documented, never run by agents.
 
 ## File layout
 
@@ -34,9 +34,11 @@ humans.
 - `src/ui/view.js`: pure view model (settings, week, plan, today and now in; plain data out). No DOM.
 - `test/`: `node --test` tests, one file per pure module: `budget`, `i18n`, `time`, `view`, `week`.
 - `deploy/`: `README.md` and `terraform/` (Gateway VM deploy; `files/install.sh`, `templates/kita.conf.tftpl`,
-  `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, `terraform.tfvars.example`).
+  `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, `backend.hcl.example`, `terraform.tfvars.example`).
+- `.github/workflows/ci.yml`: workflow `CI`: `node --test` on every push and pull request; deploys `main` with
+  Terraform on the R2 backend.
 - `.plan/`, `.planzilla/`, `.agents/`, `.claude/`: Planzilla plans and vendored tooling (see below).
-- `.gitignore`: ignores Terraform state, variable files and local `.terraform/` data.
+- `.gitignore`: ignores Terraform state, variable files, backend config and local `.terraform/` data.
 - `LICENSE`: Apache-2.0. Do not edit it.
 - `AGENTS.md`, `CLAUDE.md`, `README.md`: project docs.
 
