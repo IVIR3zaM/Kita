@@ -1,5 +1,5 @@
 # Kita weekly hours tracker
-status: WAITING
+status: DONE
 created: 2026-10-05 · updated: 2026-10-05
 goal: A dark, mobile-first static web app that tracks a child's weekly Kita hours against an allowance, with its Hetzner/Cloudflare deploy and project docs
 verify: node --test
@@ -51,7 +51,7 @@ Definition of done: `node --test` is green; the app served by `python3 -m http.s
 | N06 | app shell and week view | exec | N02,N03,N04 | opus/sonnet | 1 | 0 | DONE | |
 | N07 | project docs | exec | N05,N06 | sonnet/sonnet | 2 | 0 | DONE | |
 | N08 | plan acceptance | check | N07 | -/sonnet | 1 | 0 | DONE | |
-| N09 | visual gate | gate | N10 | -/- | 0 | 1 | TODO | |
+| N09 | visual gate | gate | N10 | -/- | 0 | 1 | DONE | |
 | N10 | allowance input in hours | exec | N08 | sonnet/sonnet | 1 | 0 | DONE | |
 
 ## N01 preflight
